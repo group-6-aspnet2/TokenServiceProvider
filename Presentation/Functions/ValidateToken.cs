@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
@@ -8,32 +9,31 @@ using Presentation.Models;
 
 namespace Presentation.Functions;
 
-public class GenerateToken(ILogger<GenerateToken> logger, ITokenService tokenService)
+public class ValidateToken(ILogger<ValidateToken> logger, ITokenService tokenService)
 {
-    private readonly ILogger<GenerateToken> _logger = logger;
+    private readonly ILogger<ValidateToken> _logger = logger;
     private readonly ITokenService _tokenService = tokenService;
 
     public static BadRequestObjectResult BadRequest(string message) => new(new TokenResponse { Succeeded = false, Message = message });
 
-    [Function("GenerateToken")]
+    [Function("ValidateToken")]
     public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
     {
         try
         {
             var body = await new StreamReader(req.Body).ReadToEndAsync();
-
             if (string.IsNullOrWhiteSpace(body))
             {
-                const string message = "Invalid body."; 
+                const string message = "Invalid body.";
                 _logger.LogWarning(message);
                 return BadRequest(message);
             }
 
-            TokenRequest? tokenRequest;
+            ValidationRequest? validationRequest;
             try
             {
-                tokenRequest = JsonConvert.DeserializeObject<TokenRequest>(body);
-                if (tokenRequest == null)
+                validationRequest = JsonConvert.DeserializeObject<ValidationRequest>(body);
+                if (validationRequest == null)
                     throw new JsonException("Deserialization failed.");
             }
             catch (JsonException ex)
@@ -42,10 +42,10 @@ public class GenerateToken(ILogger<GenerateToken> logger, ITokenService tokenSer
                 return BadRequest("Invalid JSON format.");
             }
 
-            var response = await _tokenService.GenerateTokenAsync(tokenRequest);
+            var response = await _tokenService.ValidateTokenAsync(validationRequest);
             return response.Succeeded
                 ? new OkObjectResult(response)
-                : BadRequest(response.Message!);
+                : new UnauthorizedObjectResult(new ValidationResponse { Succeeded = false, Message = "Invalid or expired token." });
         }
         catch (Exception ex)
         {
