@@ -31,7 +31,7 @@ public class TokenService : ITokenService
             var credentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey)), SecurityAlgorithms.HmacSha256) ?? throw new NullReferenceException("Unable to create credentials.");
 
             using var http = new HttpClient();
-            var response = await http.PostAsJsonAsync("", request); // TODO: Kolla upp korrekt URL
+            var response = await http.PostAsJsonAsync(Environment.GetEnvironmentVariable("GenerateTokenUri"), request); // TODO: Kolla upp korrekt URL
             if (!response.IsSuccessStatusCode)
                 throw new Exception("UserId is invalid.");
 
@@ -86,7 +86,7 @@ public class TokenService : ITokenService
                 throw new Exception("User id does not match.");
 
             using var http = new HttpClient();
-            var response = await http.GetAsync($"https://...../api/users/exists/{userId}"); // TODO: Kolla upp korrekt URL
+            var response = await http.GetAsync(Environment.GetEnvironmentVariable("ValidateTokenUri")); // TODO: Kolla upp korrekt URL
             if (!response.IsSuccessStatusCode)
                 throw new NullReferenceException("User not found.");
 

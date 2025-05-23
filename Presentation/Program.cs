@@ -7,6 +7,16 @@ using Presentation.Services;
 
 var builder = FunctionsApplication.CreateBuilder(args);
 
+//builder.Services.AddCors(options =>
+//{
+//    options.AddPolicy("AllowAll", policy =>
+//        policy
+//            .AllowAnyOrigin()
+//            .AllowAnyHeader()
+//            .AllowAnyMethod()
+//        );
+//});
+
 builder.Services.AddScoped<ITokenService, TokenService>();
 
 builder.ConfigureFunctionsWebApplication();
