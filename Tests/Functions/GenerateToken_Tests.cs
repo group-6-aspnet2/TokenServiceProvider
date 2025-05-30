@@ -8,6 +8,7 @@ using Tests.Helpers;
 
 namespace Tests.Functions;
 
+// Hjälp från ChatGPT med delar av testerna
 public class GenerateToken_Tests
 {
     private readonly Mock<ILogger<GenerateToken>> _logger = new();
